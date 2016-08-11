@@ -1,18 +1,5 @@
 package org.jenkinsci.plugins.periodicreincarnation;
 
-import hudson.AbortException;
-import hudson.model.BuildBadgeAction;
-import hudson.model.Result;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.Computer;
-import hudson.model.Node;
-import hudson.model.Run;
-import hudson.plugins.jobConfigHistory.JobConfigBadgeAction;
-import hudson.remoting.VirtualChannel;
-import hudson.util.IOUtils;
-import hudson.util.RemotingDiagnostics;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -23,6 +10,12 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import hudson.AbortException;
+import hudson.model.*;
+import hudson.plugins.jobConfigHistory.JobConfigBadgeAction;
+import hudson.remoting.VirtualChannel;
+import hudson.util.IOUtils;
+import hudson.util.RemotingDiagnostics;
 import jenkins.model.Jenkins;
 
 /**
@@ -110,11 +103,13 @@ public class Utils {
      *            regual expression.
      * @param quietPeriod
      *            amount of time a job will wait in the queue(in seconds).
+     * @param actions
+     *            actions to run when restarting (typically ParameterActions to keep previous build parameter values)
      * @throws IOException
      * @throws InterruptedException
      * 
      */
-    protected static void restart(AbstractProject<?, ?> project, String cause, RegEx regEx, int quietPeriod) {
+    protected static void restart(AbstractProject<?, ?> project, String cause, RegEx regEx, int quietPeriod, Action... actions) {
         if (regEx != null) {
             try {
                 Utils.execAction(project, regEx.getNodeAction(), regEx.getMasterAction());
@@ -125,8 +120,9 @@ public class Utils {
                 LOGGER.warning("Interrupt while executing groovy script.");
                 e.printStackTrace();
             }
-        }
-        project.scheduleBuild(quietPeriod, new PeriodicReincarnationBuildCause(cause));
+        }        
+
+        project.scheduleBuild(quietPeriod, new PeriodicReincarnationBuildCause(cause), actions );
     }
 
     /**

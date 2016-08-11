@@ -1,11 +1,15 @@
 package org.jenkinsci.plugins.periodicreincarnation;
 
+import static hudson.model.Result.SUCCESS;
+
+import java.util.List;
+
 import hudson.Extension;
-import hudson.model.TaskListener;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
+import hudson.model.ParametersAction;
+import hudson.model.TaskListener;
 import hudson.model.listeners.RunListener;
-import static hudson.model.Result.SUCCESS;
 
 /**
  * This class triggers a restart automatically after a build has failed.
@@ -71,6 +75,12 @@ public class AfterbuildReincarnation extends RunListener<AbstractBuild<?, ?>> {
         }
     }
 
+    private ParametersAction[] extractBuildParameters(AbstractBuild<?, ?> build){
+        List<ParametersAction> buildActions = build.getActions(ParametersAction.class);
+        ParametersAction[] parametersActions = buildActions.toArray(new ParametersAction[buildActions.size()]);
+        return parametersActions;
+    }
+
     /**
      * Method to restart a given project if it was configured locally. Here we
      * should check for no regular expressions that match our project. If the
@@ -81,8 +91,9 @@ public class AfterbuildReincarnation extends RunListener<AbstractBuild<?, ?>> {
      */
     private void localRestart(AbstractBuild<?, ?> build) {
         if (checkRestartDepth(build)) {
-            Utils.restart((AbstractProject<?, ?>) build.getProject(),
-                    "(Afterbuild restart) Locally configured project.", null, Constants.AFTERBUILDQUIETPERIOD);
+            build.getActions(ParametersAction.class);
+        	Utils.restart((AbstractProject<?, ?>) build.getProject(),
+                    "(Afterbuild restart) Locally configured project.", null, Constants.AFTERBUILDQUIETPERIOD, extractBuildParameters(build));
         }
     }
 
@@ -99,7 +110,7 @@ public class AfterbuildReincarnation extends RunListener<AbstractBuild<?, ?>> {
                 && Utils.qualifyForUnchangedRestart((AbstractProject<?, ?>) build.getProject())
                 && checkRestartDepth(build)) {
             Utils.restart((AbstractProject<?, ?>) build.getProject(),
-                    "(Afterbuild restart) No difference between last two builds", null, Constants.AFTERBUILDQUIETPERIOD);
+                    "(Afterbuild restart) No difference between last two builds", null, Constants.AFTERBUILDQUIETPERIOD, extractBuildParameters(build));
         }
     }
 
@@ -114,7 +125,7 @@ public class AfterbuildReincarnation extends RunListener<AbstractBuild<?, ?>> {
         if (regEx != null && checkRestartDepth(build)) {
             Utils.restart((AbstractProject<?, ?>) build.getProject(),
                     "(Afterbuild restart) RegEx hit in console output: " + regEx.getValue(), regEx,
-                    Constants.AFTERBUILDQUIETPERIOD);
+                    Constants.AFTERBUILDQUIETPERIOD, extractBuildParameters(build));
         }
     }
 

@@ -3,12 +3,11 @@
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <version> 1.554.3</version> <!-- which version of Jenkins is this plugin built against? -->
+        <version> 1.612</version> <!-- which version of Jenkins is this plugin built against? -->
     </parent>
     <name>Periodic Reincarnation Plugin</name>
-    <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>periodic-reincarnation</artifactId>
-    <version>1.10-SNAPSHOT</version>
+    <version>1.11-CANAL</version>
     <packaging>hpi</packaging>
     <url>http://wiki.jenkins-ci.org/display/JENKINS/Periodic+Reincarnation+Plugin</url>
 
@@ -71,6 +70,7 @@
         <jacoco-maven-plugin.version>0.7.1.201405082137</jacoco-maven-plugin.version>
         <maven-hpi-plugin.version>1.109</maven-hpi-plugin.version>
         <maven-hpi-plugin.injectedTestName>InjectedIT</maven-hpi-plugin.injectedTestName>
+        <maven-source-plugin.version>3.0.1</maven-source-plugin.version>
     </properties>
 
     <dependencies>
@@ -159,6 +159,20 @@
                     <argLine>${argLine} -Xms128m -Xmx512m</argLine>
                 </configuration>
             </plugin>
+			<plugin>
+			  <groupId>org.apache.maven.plugins</groupId>
+			  <artifactId>maven-source-plugin</artifactId>
+              <version>${maven-source-plugin.version}</version>
+			  <executions>
+				<execution>
+					<id>attach-sources</id>
+					<phase>verify</phase>
+					<goals>
+						<goal>jar-no-fork</goal>
+					</goals>
+				</execution>
+			  </executions>
+			</plugin>
         </plugins>
     </build>
     <reporting>
